@@ -1,0 +1,12 @@
+*.v2
+*.vsidx
+*.bin
+*.suo
+*.json
+*.dll
+net6.0
+*.cache
+obj
+*.wsuo
+*.sqlite
+*.pubxml

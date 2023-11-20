@@ -1,28 +1,76 @@
-﻿namespace GraphTraversal
+﻿using System.Diagnostics;
+
+namespace GraphTraversal
 {
     public class Program
     {
+        static readonly Random Random = new();
         static void Main(string[] args)
         {
-            Graph g = new Graph(4, Graph.GraphOrientation.Bidirected);
-            g.AddEdge(0, 1);
-            g.AddEdge(0, 2);
-            g.AddEdge(1, 2);
-            g.AddEdge(2, 0);
-            g.AddEdge(2, 3);
-            g.AddEdge(3, 3);
+            string inputPath;
+            if (args.Length > 0)
+                inputPath = args[0];
+            else
+            {
+                Console.WriteLine("No Input Path Was Informed.");
+                return;
+            }
 
-            Console.WriteLine("Following is Breadth First "
-                          + "Traversal(starting from "
-                          + "vertex 2)");
-            g.BFS(2);
+            string? line;
+            Graph myGraph;
+            long elapsedMilliseconds;
+            HashSet<int> candidates = new();
+            foreach (Graph.GraphAdjacency graphAdjacency in Enum.GetValues<Graph.GraphAdjacency>())
+            {
+                try
+                {
+                    StreamReader sr = new(inputPath);
 
-            Console.WriteLine(
-            "\n\nFollowing is Depth First Traversal "
-            + "(starting from vertex 2)");
+                    line = sr.ReadLine();
 
-            // Function call
-            g.DFS(2);
+                    if (line is null) return;
+
+                    // First Line
+                    int numberOfVertices = int.Parse(line);
+
+                    Console.WriteLine($"Initializing Graph Using Adjacency {graphAdjacency}.");
+                    myGraph = new(numberOfVertices, Graph.GraphOrientation.Bidirected, graphAdjacency);
+
+                    while (sr.Peek() >= 0)
+                    {
+                        line = sr.ReadLine();
+                        if (line is null) return;
+
+                        string[] splitedLines = line.Split(" ");
+                        int v = int.Parse(splitedLines.First());
+                        int w = int.Parse(splitedLines.Last());
+
+                        myGraph.AddEdge(v, w);
+                    }
+                }
+                catch(Exception ex)
+                {
+                    Console.WriteLine(ex.ToString());
+                    Console.WriteLine("Error When Reading Input File.");
+                    return;
+                }
+
+                while (candidates.Count < 10)
+                    candidates.Add(Random.Next(0, myGraph.NumberOfVertices));
+
+                foreach (int canditate in candidates)
+                {
+                    foreach (Graph.GraphTraversalMethod graphTraversalMethod in Enum.GetValues<Graph.GraphTraversalMethod>())
+                    {
+                        elapsedMilliseconds = myGraph.Traversal(canditate, graphTraversalMethod, false);
+                        Console.WriteLine($"Elapsed Milliseconds on {graphTraversalMethod}: {elapsedMilliseconds}.");
+                    }
+                }
+
+                Process currentProcess = Process.GetCurrentProcess();
+                long memoryUsage = currentProcess.WorkingSet64;
+                Console.WriteLine($"Adjacency {graphAdjacency} Memory Usage: {memoryUsage / 1048576}MB.\n");
+            }
         }
     }
 }
